@@ -1,0 +1,9 @@
+---
+applications:
+- name: blue-green-ccb
+  memory: 512M
+  disk: 512M
+  instances: 1
+  path: build/libs/blue-green-v0.0.1.war
+  host: blue-green-ccb
+  domain: cfapps.io
