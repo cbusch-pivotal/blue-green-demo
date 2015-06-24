@@ -31,9 +31,9 @@ Demonstration steps:
 2. Show github environment (web and Mac OS X app)
 
 3. In STS, 
-	a. change html header and footer tags to use “green”
-	b. build and run locally to check out
-	c. push to CF
+    3a. change html header and footer tags to use “green”
+    3b. build and run locally to check out
+    3c. push to CF
 
 4. It’s running, use GITHUB to commit and sync
 
