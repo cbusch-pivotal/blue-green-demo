@@ -9,7 +9,6 @@ Example blue-green application can be found at the following link. Absolutely fo
 
 https://github.com/cbusch-pivotal/blue-green-demo
 
-
 Startup:
 1 - Chrome with:
 	- (Github)  https://github.com/cbusch-pivotal/blue-green-demo
@@ -23,21 +22,20 @@ Startup:
 
 
 Demonstration steps:
-
 1. Show STS environment - developer activities
 	a. run application with locally with Spring Boot and show app
 	b. push application to PWS to test running on PCF and show app
 
 2. Show github environment (web and Mac OS X app)
 
-3. In STS, 
+3. In STS,
     3a. change html header and footer tags to use “green”
     3b. build and run locally to check out
     3c. push to CF
 
 4. It’s running, use GITHUB to commit and sync
 
-5. Jump to Jenkins to 
+5. Jump to Jenkins to
 	a. watch build and deploy kick-off
 	b. show console
 

@@ -1,0 +1,55 @@
+# log into CF CLI
+wget http://go-cli.s3-website-us-east-1.amazonaws.com/releases/latest/cf-linux-amd64.tgz
+tar -zxvf cf-linux-amd64.tgz
+./cf --version
+./cf login -a https://api.$CF_SYSTEM_DOMAIN -u cbusch@pivotal.io -p ${CF_PWD} -o Central -s busch --skip-ssl-validation
+
+# create variables
+DEPLOYED_VERSION_CMD=$(CF_COLOR=false ./cf apps | grep "$CF_APP" | cut -d" " -f1)
+DEPLOYED_VERSION="$DEPLOYED_VERSION_CMD"
+ROUTE_VERSION=$(echo "${BUILD_NUMBER}" | cut -d"." -f1-3 | tr '.' '-')
+echo "Deployed Version Cmd: DEPLOYED_VERSION_CMD"
+echo "Deployed Version: $DEPLOYED_VERSION"
+echo "Route Version: $ROUTE_VERSION"
+echo "Build Number: ${BUILD_NUMBER}"
+
+# push a new version to ***BUSCH*** space and map the route
+./cf push "$CF_APP-$BUILD_NUMBER" -i 1 -m 512M -n "$CF_APP-$ROUTE_VERSION" -d $CF_APPS_DOMAIN -p $CF_JAR --no-manifest
+./cf map-route "$CF_APP-${BUILD_NUMBER}" $CF_APPS_DOMAIN -n $CF_APP-ccb
+
+# smoke test the code and routes
+echo "Smoke test http://$CF_APP-${BUILD_NUMBER}.$CF_APPS_DOMAIN route" 
+SMOKETEST1=$(awk 'BEGIN {"curl -sI http://$CF_APP-${BUILD_NUMBER}.$CF_APPS_DOMAIN" | getline; print $2}')
+if [ ! $SMOKETEST1 -eq 200 ]; then
+  echo "Smoke test #1 failed"
+  exit 1 # terminate and indicate error
+fi
+
+echo "Smoke test http://$CF_APP-ccb.$CF_APPS_DOMAIN route" 
+SMOKETEST2=$(awk 'BEGIN {"curl -sI http://$CF_APP-ccb.$CF_APPS_DOMAIN" | getline; print $2}')
+if [ ! $SMOKETEST2 -eq 200 ]; then
+  echo "Smoke test #2 failed"
+  exit 1 # terminate and indicate error
+fi
+
+echo "$CF_APP-${BUILD_NUMBER}"
+echo "checking to perform cutover"
+if [ ! -z "$DEPLOYED_VERSION" -a "$DEPLOYED_VERSION" != " " -a "$DEPLOYED_VERSION" != "$CF_APP-${BUILD_NUMBER}" ]; then
+  echo "Performing zero-downtime cutover to $BUILD_NUMBER"
+  while read line
+  do
+    if [ ! -z "$line" -a "$line" != " " -a "$line" != "$CF_APP-${BUILD_NUMBER}" ]; then
+      echo "Scaling down, unmapping and removing $line"
+      # Unmap the route and delete
+      ./cf unmap-route "$line" $CF_APPS_DOMAIN -n $CF_APP-ccb
+
+      # delete app is you don't want to roll-back
+      ./cf delete "$line" -f
+
+      ./cf delete-route $CF_APPS_DOMAIN -n "$line" -f
+    else
+      echo "Skipping $line"
+    fi
+  done <<< "$DEPLOYED_VERSION"
+fi
+
