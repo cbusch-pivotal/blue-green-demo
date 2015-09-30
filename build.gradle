@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.3.RELEASE")
-        //classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}") 
+        //classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         //classpath("io.spring.gradle:dependency-management-plugin:0.5.1.RELEASE")
     }
 }
@@ -17,11 +17,19 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'war'
-//apply plugin: 'io.spring.dependency-management' 
+//apply plugin: 'io.spring.dependency-management'
+
+allprojects {
+    if (project.hasProperty('buildversion')) {
+        project.version = project.buildversion
+    } else {
+        project.version = '1.0'
+    }
+}
 
 war {
     baseName = 'blue-green'
-    version = 'v0.0.1'
+    version = project.version
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -37,7 +45,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-actuator")
     //compile("org.springframework.boot:spring-boot-starter-redis")
     //compile("org.springframework.boot:spring-boot-starter-web")
-    testCompile("org.springframework.boot:spring-boot-starter-test") 
+    testCompile("org.springframework.boot:spring-boot-starter-test")
 }
 
 
